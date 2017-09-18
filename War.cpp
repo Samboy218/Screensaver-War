@@ -6,18 +6,12 @@
 #include <string.h>
 #include "vroot.h"
 
-// 1/LIFE_CHANCE is the probability a cell will begin with life
-#define LIFE_CHANCE 3
-
 // the size, in pixels, of each cell
 #define CELL_H 5
 #define CELL_W 5
 
 //the speed to run at (FPS)
 #define FPS_RUN 30
-
-//how many generations to wait until we restart
-#define NEXT_AT 1500
 
 enum valid_colors {
     COLOR_BLACK, COLOR_RED,
@@ -29,14 +23,13 @@ enum valid_colors {
 
 int main() 
 {
+    //Init xlib variables
     Display* dpy;
     Window root;
     GC g;
     XWindowAttributes wa;
+    //seed random
     srandom(time(NULL));
-    char counter[20];
-    int generation = 0;
-
     const char* colors[NUM_COLORS] = {"rgb:1d/1f/21", "rgb:cc/66/66", 
                                     "rgb:b5/bd/68", "rgb:81/a2/be",
                                     "rgb:f0/c6/74", "rgb:b2/94/bb", 
@@ -70,10 +63,25 @@ int main()
     XSetForeground(dpy, g, WhitePixelOfScreen(DefaultScreenOfDisplay(dpy)));
 
     //now we can make art
-    //init GOL
-    int gridW = wa.width/CELL_W;
-    int gridH = wa.height/CELL_H;
+    int timeWait = CLOCKS_PER_SEC / FPS_RUN;
+    clock_t now;
+    clock_t previous = clock();
+    
+    while(1) 
+    {
+        now = clock();
+        if ((now - previous) < timeWait)
+        {
+            usleep(timeWait - (now - previous));
+        }
+        previous = now;
 
-
-    int liveColor = (random()%(NUM_COLORS-1)) + 1; 
-
+        //Code for one frame here
+        //all units decide on what they want to do
+        allUnits.plan();
+        //all units do their action (how to resolve conflicts?)
+        allUnits.act();
+        //draw the current state of each army
+        allunits.draw();
+    }
+}
